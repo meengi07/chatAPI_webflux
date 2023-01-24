@@ -3,12 +3,6 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: chat
-
-  rsocket:
-    server:
-      port: 6565
-  main:
-    lazy-initialization: true
+      database: messenger
 
 

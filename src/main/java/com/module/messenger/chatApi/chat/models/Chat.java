@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -17,12 +18,9 @@ public class Chat implements Serializable {
 
     @Id
     private String id;
-
-    private String mid;
-
     private String message;
-
-    private Date sendTime;
-
+    private String sender;
+    private String receiver;
+    private LocalDateTime sendTime;
 
 }

@@ -1,59 +1,43 @@
 package com.module.messenger.chatApi.chat.controller;
 
+import com.module.messenger.chatApi.chat.Repository.ChatRepository;
 import com.module.messenger.chatApi.chat.models.Chat;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.annotation.Collation;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.annotation.ConnectMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@CrossOrigin
+@RestController
+@RequiredArgsConstructor
 public class ChatController {
 
-    private final List<RSocketRequester> CLIENTS = new ArrayList<>();
+    private final ChatRepository chatRepository;
 
-    @ConnectMapping
-    public void onConnect(RSocketRequester socket) {
-        socket
-                .rsocket()
-                .onClose()
-                .doFirst(() -> {
-                    CLIENTS.add(socket);
-                })
-                .doOnError(e -> e.printStackTrace())
-                .doFinally(consum -> CLIENTS.remove(socket))
-                .subscribe();
+
+    @GetMapping(value="/sender/{sender}/receiver/{receiver}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Chat> getMessage(@PathVariable String sender, @PathVariable String receiver) {
+        return chatRepository.findBySenders(sender, receiver)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
-    @MessageMapping("message")
-    public Mono<Chat> message(Chat chat) {
-        this.sendMessage(chat);
-        return Mono.just(chat);
-    }
 
-    @MessageMapping("send")
-    public void sendMessage(Chat chat) {
-
-        Chat chatting = Chat.builder()
-                .id(chat.getId())
-                .mid(chat.getMid())
-                .message(chat.getMessage())
-                .sendTime(chat.getSendTime()).build();
-
-        Flux.fromIterable(CLIENTS)
-                .doOnNext(n -> {
-                    n.route("")
-                            .data(chatting)
-                            .send()
-                            .subscribe();
-                }).subscribe();
-
-
+    @PostMapping("/chat")
+    public Mono<Chat> setMessage(@RequestBody Chat chat) {
+        chat.setSendTime(LocalDateTime.now());
+        return chatRepository.save(chat);
     }
 }
