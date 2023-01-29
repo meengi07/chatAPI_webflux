@@ -11,16 +11,14 @@ import java.util.Date;
 
 @Data
 @Document(value = "chat")
-@Builder
-public class Chat implements Serializable {
-
-    private static final long serialVersionUID = 142466781L;
+public class Chat {
 
     @Id
     private String id;
-    private String message;
+    private String msg;
     private String sender;
     private String receiver;
-    private LocalDateTime sendTime;
+    private Integer roomNum;
+    private LocalDateTime createdAt;
 
 }

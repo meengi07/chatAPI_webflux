@@ -34,10 +34,16 @@ public class ChatController {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
+    @GetMapping(value = "/chat/roomNum/{roomNum}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Chat> findByRoomNumber(@PathVariable Integer roomNum) {
+        return chatRepository.findByRoomNum(roomNum)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
 
     @PostMapping("/chat")
     public Mono<Chat> setMessage(@RequestBody Chat chat) {
-        chat.setSendTime(LocalDateTime.now());
+        chat.setCreatedAt(LocalDateTime.now());
         return chatRepository.save(chat);
     }
 }
